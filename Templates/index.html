@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario Selector</title>
+</head>
+<body>
+    <h1>Scenario Selector</h1>
+
+    <form method="POST" action="/set-scenario">
+        <label for="scenario">Select a Scenario:</label>
+        <select name="scenario" id="scenario">
+            {% for scenario_name, scenario_details in scenarios.items() %}
+                <option value="{{ scenario_name }}" {% if scenario_name == active_scenario %}selected{% endif %}>
+                    {{ scenario_name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Set Scenario</button>
+    </form>
+
+    <h2>Active Scenario</h2>
+    {% if active_scenario %}
+        <p>Currently active scenario: <strong>{{ active_scenario }}</strong></p>
+        <p>Description: {{ scenarios[active_scenario]["ScenarioDescription"] }}</p>
+    {% else %}
+        <p>No scenario is currently active.</p>
+    {% endif %}
+
+    <h2>Run Scenario</h2>
+    {% if active_scenario %}
+        <form id="resources-form" style="margin-bottom: 10px;" onsubmit="return false;">
+            <label for="resources">Resources (comma separated):</label>
+            <input type="text" id="resources-input" name="resources" value="{{ resources or 'vmss_vm1' }}">
+        </form>
+        <form method="POST" action="/generate-event" style="display:inline;" id="generate-event-form">
+            <input type="hidden" id="resources-hidden" name="resources" value="{{ resources or 'vmss_vm1' }}">
+            <label for="event_status">Select Event Status:</label>
+            <select name="event_status" id="event_status">
+                {% for status in scenarios[active_scenario]["EventStatus"].keys() %}
+                    <option value="{{ status }}">{{ status }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" id="generate-event-btn">Generate Event</button>
+        </form>
+        <form method="POST" action="/auto-run-scenario" style="display:inline;">
+            <input type="hidden" id="resources-auto-hidden" name="resources" value="{{ resources or 'vmss_vm1' }}">
+            <button type="submit" id="auto-run-btn">Automatically Run Scenario</button>
+        </form>
+        <form method="POST" action="/stop-auto-run" style="display:inline;">
+            <button type="submit" id="stop-playback-btn">Stop Playback</button>
+        </form>
+        <script>
+          // Keep the hidden resources fields in sync with the visible input
+          const resourcesInput = document.getElementById('resources-input');
+          const resourcesHidden = document.getElementById('resources-hidden');
+          const resourcesAutoHidden = document.getElementById('resources-auto-hidden');
+          if (resourcesInput) {
+            // Save resources to localStorage on input
+            resourcesInput.value = localStorage.getItem('resources') || resourcesInput.value;
+            resourcesInput.addEventListener('input', function() {
+              if (resourcesHidden) resourcesHidden.value = this.value;
+              if (resourcesAutoHidden) resourcesAutoHidden.value = this.value;
+              localStorage.setItem('resources', this.value);
+            });
+            // On form submit, save resources to localStorage
+            document.getElementById('generate-event-form').addEventListener('submit', function() {
+              localStorage.setItem('resources', resourcesInput.value);
+            });
+          }
+        </script>
+    {% else %}
+        <p>Please select a scenario first to generate an event.</p>
+    {% endif %}
+
+    <hr>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if last_event %}
+        <h3>Last Event</h3>
+        <pre id="last-event-pre">{{ imds_event | tojson(indent=2) }}</pre>
+    {% endif %}
+
+    <script>
+      let isAutoRunning = false;
+      async function fetchLastEvent() {
+        try {
+          const response = await fetch('/metadata/scheduledevents');
+          if (!response.ok) return;
+          const data = await response.json();
+          const pre = document.getElementById('last-event-pre');
+          if (pre) {
+            pre.textContent = JSON.stringify(data, null, 2);
+          }
+          // Determine if auto-run is active (if the last event is not Completed/Canceled and Events is not empty)
+          let running = false;
+          if (data.Events && data.Events.length > 0) {
+            const status = data.Events[0].EventStatus;
+            if (status !== 'Completed' && status !== 'Canceled') {
+              running = true;
+            }
+          }
+          isAutoRunning = running;
+          // Enable/disable buttons
+          document.getElementById('stop-playback-btn').disabled = !isAutoRunning;
+          document.getElementById('auto-run-btn').disabled = isAutoRunning;
+          // Only disable Generate Event if auto-run is running
+          // (so it is always enabled unless scenario is running)
+        } catch (e) {}
+      }
+      setInterval(fetchLastEvent, 2000);
+      window.onload = fetchLastEvent;
+    </script>
+</body>
+</html>
