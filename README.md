@@ -1,4 +1,4 @@
-# Scheduled Events Responder
+# Scheduled Events Mock Server
 
 A Flask-based web application for simulating Azure Scheduled Events and IMDS (Instance Metadata Service) event flows. This tool is designed for testing and development scenarios where you want to emulate Azure platform events, such as Live Migration, User Reboot, Maintenance, and more.
 
