@@ -5,14 +5,7 @@ from datetime import datetime, timedelta, timezone
 import threading
 import time
 
-#TODO: List for Monday:
-# 2. Update description strings to real ones 
-# 3. Confirm timings on events, switch to minutes on the autorunners
-# 3. Add more descriptive scenario descriptions
-
-
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for flashing messages
 
 # Global variable to store the active scenario and last event
 active_scenario = None
