@@ -9,7 +9,6 @@ metadata_url ="http://127.0.0.1/metadata/scheduledevents"
 header = {'Metadata' : 'true'}
 # Current version of the API
 query_params = {'api-version':'2020-07-01'}
-secret_key = 'test_key'
 
 def get_scheduled_events():           
     resp = requests.get(metadata_url, headers = header, params = query_params)
