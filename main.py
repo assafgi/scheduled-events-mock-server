@@ -11,6 +11,7 @@ app = Flask(__name__)
 active_scenario = None
 last_event = None
 last_doc_incarnation = 1
+app.secret_key = 'test_key'
 
 # Predefined scenarios
 scenarios = {

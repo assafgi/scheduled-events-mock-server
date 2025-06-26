@@ -9,6 +9,7 @@ metadata_url ="http://127.0.0.1/metadata/scheduledevents"
 header = {'Metadata' : 'true'}
 # Current version of the API
 query_params = {'api-version':'2020-07-01'}
+secret_key = 'test_key'
 
 def get_scheduled_events():           
     resp = requests.get(metadata_url, headers = header, params = query_params)
@@ -84,11 +85,11 @@ def main():
         last_document_incarnation = advanced_sample(last_document_incarnation)
 
 
-        #user_input = input(input_text)    
-        #if (user_input == "1"):                        
-        #    last_document_incarnation = advanced_sample(last_document_incarnation)
-        #elif (user_input == "2"):
-        #    program_exit = True       
+        user_input = input(input_text)    
+        if (user_input == "1"):                        
+            last_document_incarnation = advanced_sample(last_document_incarnation)
+        elif (user_input == "2"):
+            program_exit = True       
 
 if __name__ == '__main__':
     main()
