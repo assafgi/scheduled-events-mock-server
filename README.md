@@ -79,6 +79,12 @@ A Flask-based web application for simulating Azure Scheduled Events and IMDS (In
 
 - For more information on Azure Scheduled Events and the IMDS API, see the [Azure Scheduled Events documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/scheduled-events).
 
+## Scenarios
+There are two types of scenarios available to automatically run. The base types have their timings based on median values  from a sample of scheduled events sent to Azure customer in July 2025. These timing can be used to understand how your application would respond to a real event. 
+
+The "Dev Timing" scenarios have all the timing reduced by a factor of 60 to make it easier for development and inner loop testing. For example, instead of a 15 minute warning period before the live migration, the scenario will only give 15 seconds. This shouldn't used as a guideline for how Azure will work, but rather as a way to make your development easier.
+
+
 ## Customization
 
 - A few common scenarios are defined in `main.py` in the `scenarios` dictionary.

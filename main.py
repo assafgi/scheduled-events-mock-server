@@ -14,8 +14,13 @@ last_doc_incarnation = 1
 app.secret_key = 'test_key'
 
 # Predefined scenarios
+# Dev timing scenarios have all their timings in seconds 
+# So instead of waiting 15 minutes for an event to appear, it'll take 15 seconds
+# to prevent waiting when testing locally.
+# The other scenarios have the timings convert the times to minutes to match what
+# would happen in production 
 scenarios = {
-    "Live Migration": {
+    "Live Migration - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 5,
@@ -32,12 +37,12 @@ scenarios = {
         "EventSource": "Platform",
         "DurationInSeconds": 5,
     },
-    "User Reboot": {
+    "User Reboot - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 10,
         "EventStatus": OrderedDict([
-            ("Scheduled", 150),
+            ("Scheduled", 15),
             ("Started", 10),
             ("Completed", 0)
         ]),
@@ -49,7 +54,7 @@ scenarios = {
         "EventSource": "User",
         "DurationInSeconds": -1,
     },
-    "Host Agent Maintenance": {
+    "Host Agent Maintenance - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 10,
@@ -67,7 +72,7 @@ scenarios = {
         "EventSource": "Platform",
         "DurationInSeconds": 9,
     },
-    "Redeploy": {
+    "Redeploy - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 10,
@@ -83,7 +88,7 @@ scenarios = {
         "EventSource": "Platform",
         "DurationInSeconds": -1
     },
-    "User Redeploy": {
+    "User Redeploy - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 10,
@@ -99,12 +104,114 @@ scenarios = {
         "EventSource": "User",
         "DurationInSeconds": -1
     },
-    "Canceled Maintenance": {
+    "Canceled Maintenance - Dev Timing": {
         "EventId": str(uuid.uuid4()),
         "NotBeforeDelayInMinutes": 15,
         "StartedDurationInMinutes": 10,
         "EventStatus": OrderedDict([
             ("Scheduled", 8),
+            ("Canceled", 0)
+        ]),
+        "EventType": "Freeze",
+        "Description": "Host server is undergoing maintenance.",
+        "ScenarioDescription": """This scenario simulates the rare case where a 
+            maintenance event that was canceled. This can happen if Azure detects other 
+            hosts receiving the same maintenance event are failing health checks. The 
+            system will cancel any pending maintenance events and pause the maintenance until
+            a root cause can be determined.""",
+        "EventSource": "Platform",
+        "DurationInSeconds": 9,
+    },
+        "Live Migration": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 5,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 15 * 60),
+            ("Started", 5 * 60),
+            ("Completed", 0)
+        ]),
+        "EventType": "Freeze",
+        "Description": "Virtual machine is being paused because of a memory-preserving Live Migration operation.",
+        "ScenarioDescription": """This scenario simulates a live migration. LMs 
+            can be triggered by the platform in the case of host maintenance or if 
+            there is a predicted host failure.""",
+        "EventSource": "Platform",
+        "DurationInSeconds": 5,
+    },
+    "User Reboot": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 10,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 15 * 60),
+            ("Started", 10 * 60),
+            ("Completed", 0)
+        ]),
+        "EventType": "Reboot",
+        "Description": "Virtual machine is going to be restarted as requested by authorized user.",
+        "ScenarioDescription": """This scenario simulates a reboot initiated by 
+            the user. This can be triggered via the portal or CLI if you'd like 
+            to test with a real reboot""",
+        "EventSource": "User",
+        "DurationInSeconds": -1,
+    },
+    "Host Agent Maintenance": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 10,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 15 * 60),
+            ("Started", 10 * 60),
+            ("Completed", 0)
+        ]),
+        "EventType": "Freeze",
+        "Description": "Host server is undergoing maintenance.",
+        "ScenarioDescription": """This scenario simulates host maintenance, which 
+            is the most common reason for a scheduled event. The VM is typically frozen for 
+            between 1 and 15 seconds, but the time between the started and completed 
+            events is longer to allow Azure to run health checks after the maintenance.""",
+        "EventSource": "Platform",
+        "DurationInSeconds": 9,
+    },
+    "Redeploy": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 10,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 15 * 60),
+            ("Started", 10 * 60),
+            ("Completed", 0)
+        ]),
+        "EventType": "Redeploy",
+        "Description": "Virtual machine has encountered a failure.",
+        "ScenarioDescription": """This scenario simulates a platform-initiated redeploy "
+            due to a host failure.""",
+        "EventSource": "Platform",
+        "DurationInSeconds": -1
+    },
+    "User Redeploy": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 10,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 15 * 60),
+            ("Started", 10 * 60),
+            ("Completed", 0)
+        ]),
+        "EventType": "Redeploy",
+        "Description": "Virtual machine is going to be redeployed as requested by authorized user.",
+        "ScenarioDescription": """This scenario simulates a redeploy initiated by 
+            the user. This event can also be triggered via the portal or CLI""",
+        "EventSource": "User",
+        "DurationInSeconds": -1
+    },
+    "Canceled Maintenance": {
+        "EventId": str(uuid.uuid4()),
+        "NotBeforeDelayInMinutes": 15,
+        "StartedDurationInMinutes": 10,
+        "EventStatus": OrderedDict([
+            ("Scheduled", 8 * 60),
             ("Canceled", 0)
         ]),
         "EventType": "Freeze",
