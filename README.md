@@ -74,7 +74,7 @@ A Flask-based web application for simulating Azure Scheduled Events and IMDS (In
 
     Example:
     ```sh
-    curl -H "Metadata:true" -X POST -d '{"StartRequests": [{"EventId": "YOUR_EVENT_ID"}]}' http://localhost:5000/metadata/scheduledevents?api-version=2020-07-01
+    curl -H "Metadata:true" -X POST -d '{"StartRequests": [{"EventId": "YOUR_EVENT_ID"}]}' http://localhost:80/metadata/scheduledevents?api-version=2020-07-01
     ```
 
 - For more information on Azure Scheduled Events and the IMDS API, see the [Azure Scheduled Events documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/scheduled-events).
